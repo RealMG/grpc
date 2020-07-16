@@ -24,6 +24,7 @@
 
 #include <grpc/grpc_security_constants.h>
 #include <grpcpp/security/auth_metadata_processor.h>
+#include <grpcpp/security/tls_credentials_options.h>
 #include <grpcpp/support/config.h>
 
 struct grpc_server;
@@ -53,8 +54,7 @@ class ServerCredentials {
   ///
   /// \return bound port number on success, 0 on failure.
   // TODO(dgq): the "port" part seems to be a misnomer.
-  virtual int AddPortToServer(const grpc::string& addr,
-                              grpc_server* server) = 0;
+  virtual int AddPortToServer(const std::string& addr, grpc_server* server) = 0;
 };
 
 /// Builds SSL ServerCredentials given SSL specific options
@@ -78,6 +78,10 @@ std::shared_ptr<ServerCredentials> AltsServerCredentials(
 /// Builds Local ServerCredentials.
 std::shared_ptr<ServerCredentials> LocalServerCredentials(
     grpc_local_connect_type type);
+
+/// Builds TLS ServerCredentials given TLS options.
+std::shared_ptr<ServerCredentials> TlsServerCredentials(
+    const TlsCredentialsOptions& options);
 
 }  // namespace experimental
 }  // namespace grpc_impl

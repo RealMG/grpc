@@ -28,7 +28,6 @@
 #include <grpcpp/support/config.h>
 
 namespace grpc_impl {
-
 /// Create a new \a Channel pointing to \a target.
 ///
 /// \param target The URI of the endpoint to connect to.
@@ -36,7 +35,7 @@ namespace grpc_impl {
 /// hold an object or is invalid, a lame channel (one on which all operations
 /// fail) is returned.
 std::shared_ptr<::grpc::Channel> CreateChannelImpl(
-    const grpc::string& target,
+    const std::string& target,
     const std::shared_ptr<::grpc::ChannelCredentials>& creds);
 
 /// Create a new \em custom \a Channel pointing to \a target.
@@ -50,7 +49,7 @@ std::shared_ptr<::grpc::Channel> CreateChannelImpl(
 /// fail) is returned.
 /// \param args Options for channel creation.
 std::shared_ptr<::grpc::Channel> CreateCustomChannelImpl(
-    const grpc::string& target,
+    const std::string& target,
     const std::shared_ptr<::grpc::ChannelCredentials>& creds,
     const ::grpc::ChannelArguments& args);
 
@@ -67,7 +66,7 @@ namespace experimental {
 /// fail) is returned.
 /// \param args Options for channel creation.
 std::shared_ptr<::grpc::Channel> CreateCustomChannelWithInterceptors(
-    const grpc::string& target,
+    const std::string& target,
     const std::shared_ptr<grpc::ChannelCredentials>& creds,
     const ::grpc::ChannelArguments& args,
     std::vector<

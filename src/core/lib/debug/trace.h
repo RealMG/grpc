@@ -24,7 +24,15 @@
 #include <grpc/support/atm.h>
 #include <stdbool.h>
 
+#include "src/core/lib/gprpp/global_config.h"
+
+GPR_GLOBAL_CONFIG_DECLARE_STRING(grpc_trace);
+
+// TODO(veblush): Remove this deprecated function once codes depending on this
+// function are updated in the internal repo.
 void grpc_tracer_init(const char* env_var_name);
+
+void grpc_tracer_init();
 void grpc_tracer_shutdown(void);
 
 #if defined(__has_feature)
@@ -108,12 +116,13 @@ typedef TraceFlag DebugOnlyTraceFlag;
 #else
 class DebugOnlyTraceFlag {
  public:
-  constexpr DebugOnlyTraceFlag(bool default_enabled, const char* name) {}
+  constexpr DebugOnlyTraceFlag(bool /*default_enabled*/, const char* /*name*/) {
+  }
   constexpr bool enabled() const { return false; }
   constexpr const char* name() const { return "DebugOnlyTraceFlag"; }
 
  private:
-  void set_enabled(bool enabled) {}
+  void set_enabled(bool /*enabled*/) {}
 };
 #endif
 

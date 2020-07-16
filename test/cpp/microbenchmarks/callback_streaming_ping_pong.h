@@ -83,7 +83,7 @@ class BidiClient
   void StartNewRpc() {
     cli_ctx_->~ClientContext();
     new (cli_ctx_) ClientContext();
-    cli_ctx_->AddMetadata(kServerMessageSize, grpc::to_string(msgs_size_));
+    cli_ctx_->AddMetadata(kServerMessageSize, std::to_string(msgs_size_));
     stub_->experimental_async()->BidiStream(cli_ctx_, this);
     MaybeWrite();
     StartCall();
@@ -115,7 +115,7 @@ class BidiClient
   int msgs_size_;
   std::mutex mu;
   std::condition_variable cv;
-  bool done;
+  bool done = false;
 };
 
 template <class Fixture, class ClientContextMutator, class ServerContextMutator>

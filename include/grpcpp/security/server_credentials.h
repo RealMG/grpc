@@ -40,10 +40,10 @@ struct SslServerCredentialsOptions {
       : force_client_auth(false), client_certificate_request(request_type) {}
 
   struct PemKeyCertPair {
-    grpc::string private_key;
-    grpc::string cert_chain;
+    std::string private_key;
+    std::string cert_chain;
   };
-  grpc::string pem_root_certs;
+  std::string pem_root_certs;
   std::vector<PemKeyCertPair> pem_key_cert_pairs;
   /// \warning Deprecated
   bool force_client_auth;
@@ -77,6 +77,12 @@ static inline std::shared_ptr<ServerCredentials> AltsServerCredentials(
 static inline std::shared_ptr<ServerCredentials> LocalServerCredentials(
     grpc_local_connect_type type) {
   return ::grpc_impl::experimental::LocalServerCredentials(type);
+}
+
+/// Builds TLS ServerCredentials given TLS options.
+static inline std::shared_ptr<ServerCredentials> TlsServerCredentials(
+    const ::grpc_impl::experimental::TlsCredentialsOptions& options) {
+  return ::grpc_impl::experimental::TlsServerCredentials(options);
 }
 
 }  // namespace experimental
