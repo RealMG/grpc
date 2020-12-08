@@ -101,7 +101,7 @@ class SphinxDocumentation(setuptools.Command):
         target_dir = os.path.join(GRPC_STEM, 'doc', 'build')
         exit_code = sphinx.cmd.build.build_main(
             ['-b', 'html', '-W', '--keep-going', source_dir, target_dir])
-        if exit_code is not 0:
+        if exit_code != 0:
             raise CommandError(
                 "Documentation generation has warnings or errors")
 
@@ -217,15 +217,18 @@ class BuildExt(build_ext.build_ext):
             """Test if default compiler is okay with specifying c++ version
             when invoked in C mode. GCC is okay with this, while clang is not.
             """
-            if platform.system() != 'Windows':
+            try:
+                # TODO(lidiz) Remove the generated a.out for success tests.
+                cc_test = subprocess.Popen(['cc', '-x', 'c', '-std=c++11', '-'],
+                                           stdin=subprocess.PIPE,
+                                           stdout=subprocess.PIPE,
+                                           stderr=subprocess.PIPE)
+                _, cc_err = cc_test.communicate(input=b'int main(){return 0;}')
+                return not 'invalid argument' in str(cc_err)
+            except:
+                sys.stderr.write('Non-fatal exception:' +
+                                 traceback.format_exc() + '\n')
                 return False
-            # TODO(lidiz) Remove the generated a.out for success tests.
-            cc_test = subprocess.Popen(['cc', '-x', 'c', '-std=c++11', '-'],
-                                       stdin=subprocess.PIPE,
-                                       stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE)
-            _, cc_err = cc_test.communicate(input=b'int main(){return 0;}')
-            return not 'invalid argument' in str(cc_err)
 
         # This special conditioning is here due to difference of compiler
         #   behavior in gcc and clang. The clang doesn't take --stdc++11
@@ -298,7 +301,9 @@ class Clean(setuptools.Command):
     """Command to clean build artifacts."""
 
     description = 'Clean build artifacts.'
-    user_options = []
+    user_options = [
+        ('all', 'a', 'a phony flag to allow our script to continue'),
+    ]
 
     _FILE_PATTERNS = (
         'python_build',
@@ -311,7 +316,7 @@ class Clean(setuptools.Command):
         os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../.."))
 
     def initialize_options(self):
-        pass
+        self.all = False
 
     def finalize_options(self):
         pass

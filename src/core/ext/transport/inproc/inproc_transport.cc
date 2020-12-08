@@ -153,10 +153,11 @@ struct inproc_stream {
                                       // side to avoid destruction
       INPROC_LOG(GPR_INFO, "calling accept stream cb %p %p",
                  st->accept_stream_cb, st->accept_stream_data);
-      (*st->accept_stream_cb)(st->accept_stream_data, &st->base, (void*)this);
+      (*st->accept_stream_cb)(st->accept_stream_data, &st->base, this);
     } else {
       // This is the server-side and is being called through accept_stream_cb
-      inproc_stream* cs = (inproc_stream*)server_data;
+      inproc_stream* cs = const_cast<inproc_stream*>(
+          static_cast<const inproc_stream*>(server_data));
       other_side = cs;
       // Ref the server-side stream on behalf of the client now
       ref("inproc_init_stream:srv");
@@ -202,11 +203,6 @@ struct inproc_stream {
     }
 
     t->unref();
-
-    if (closure_at_destroy) {
-      grpc_core::ExecCtx::Run(DEBUG_LOCATION, closure_at_destroy,
-                              GRPC_ERROR_NONE);
-    }
   }
 
 #ifndef NDEBUG
@@ -249,7 +245,6 @@ struct inproc_stream {
   bool other_side_closed = false;               // won't talk anymore
   bool write_buffer_other_side_closed = false;  // on hold
   grpc_stream_refcount* refs;
-  grpc_closure* closure_at_destroy = nullptr;
 
   grpc_core::Arena* arena;
 
@@ -1132,7 +1127,8 @@ void perform_stream_op(grpc_transport* gt, grpc_stream* gs,
 
 void close_transport_locked(inproc_transport* t) {
   INPROC_LOG(GPR_INFO, "close_transport %p %d", t, t->is_closed);
-  t->state_tracker.SetState(GRPC_CHANNEL_SHUTDOWN, "close transport");
+  t->state_tracker.SetState(GRPC_CHANNEL_SHUTDOWN, absl::Status(),
+                            "close transport");
   if (!t->is_closed) {
     t->is_closed = true;
     /* Also end all streams on this transport */
@@ -1182,12 +1178,17 @@ void perform_transport_op(grpc_transport* gt, grpc_transport_op* op) {
   gpr_mu_unlock(&t->mu->mu);
 }
 
-void destroy_stream(grpc_transport* /*gt*/, grpc_stream* gs,
+void destroy_stream(grpc_transport* gt, grpc_stream* gs,
                     grpc_closure* then_schedule_closure) {
   INPROC_LOG(GPR_INFO, "destroy_stream %p %p", gs, then_schedule_closure);
+  inproc_transport* t = reinterpret_cast<inproc_transport*>(gt);
   inproc_stream* s = reinterpret_cast<inproc_stream*>(gs);
-  s->closure_at_destroy = then_schedule_closure;
+  gpr_mu_lock(&t->mu->mu);
+  close_stream_locked(s);
+  gpr_mu_unlock(&t->mu->mu);
   s->~inproc_stream();
+  grpc_core::ExecCtx::Run(DEBUG_LOCATION, then_schedule_closure,
+                          GRPC_ERROR_NONE);
 }
 
 void destroy_transport(grpc_transport* gt) {
@@ -1275,14 +1276,14 @@ grpc_channel* grpc_inproc_channel_create(grpc_server* server,
   const char* args_to_remove[] = {GRPC_ARG_MAX_CONNECTION_IDLE_MS,
                                   GRPC_ARG_MAX_CONNECTION_AGE_MS};
   const grpc_channel_args* server_args = grpc_channel_args_copy_and_remove(
-      grpc_server_get_channel_args(server), args_to_remove,
+      server->core_server->channel_args(), args_to_remove,
       GPR_ARRAY_SIZE(args_to_remove));
 
   // Add a default authority channel argument for the client
   grpc_arg default_authority_arg;
   default_authority_arg.type = GRPC_ARG_STRING;
-  default_authority_arg.key = (char*)GRPC_ARG_DEFAULT_AUTHORITY;
-  default_authority_arg.value.string = (char*)"inproc.authority";
+  default_authority_arg.key = const_cast<char*>(GRPC_ARG_DEFAULT_AUTHORITY);
+  default_authority_arg.value.string = const_cast<char*>("inproc.authority");
   grpc_channel_args* client_args =
       grpc_channel_args_copy_and_add(args, &default_authority_arg, 1);
 
@@ -1292,10 +1293,43 @@ grpc_channel* grpc_inproc_channel_create(grpc_server* server,
                            client_args);
 
   // TODO(ncteisen): design and support channelz GetSocket for inproc.
-  grpc_server_setup_transport(server, server_transport, nullptr, server_args,
-                              nullptr);
-  grpc_channel* channel = grpc_channel_create(
-      "inproc", client_args, GRPC_CLIENT_DIRECT_CHANNEL, client_transport);
+  grpc_error* error = server->core_server->SetupTransport(
+      server_transport, nullptr, server_args, nullptr);
+  grpc_channel* channel = nullptr;
+  if (error == GRPC_ERROR_NONE) {
+    channel =
+        grpc_channel_create("inproc", client_args, GRPC_CLIENT_DIRECT_CHANNEL,
+                            client_transport, nullptr, &error);
+    if (error != GRPC_ERROR_NONE) {
+      GPR_ASSERT(!channel);
+      gpr_log(GPR_ERROR, "Failed to create client channel: %s",
+              grpc_error_string(error));
+      intptr_t integer;
+      grpc_status_code status = GRPC_STATUS_INTERNAL;
+      if (grpc_error_get_int(error, GRPC_ERROR_INT_GRPC_STATUS, &integer)) {
+        status = static_cast<grpc_status_code>(integer);
+      }
+      GRPC_ERROR_UNREF(error);
+      // client_transport was destroyed when grpc_channel_create saw an error.
+      grpc_transport_destroy(server_transport);
+      channel = grpc_lame_client_channel_create(
+          nullptr, status, "Failed to create client channel");
+    }
+  } else {
+    GPR_ASSERT(!channel);
+    gpr_log(GPR_ERROR, "Failed to create server channel: %s",
+            grpc_error_string(error));
+    intptr_t integer;
+    grpc_status_code status = GRPC_STATUS_INTERNAL;
+    if (grpc_error_get_int(error, GRPC_ERROR_INT_GRPC_STATUS, &integer)) {
+      status = static_cast<grpc_status_code>(integer);
+    }
+    GRPC_ERROR_UNREF(error);
+    grpc_transport_destroy(client_transport);
+    grpc_transport_destroy(server_transport);
+    channel = grpc_lame_client_channel_create(
+        nullptr, status, "Failed to create server channel");
+  }
 
   // Free up created channel args
   grpc_channel_args_destroy(server_args);

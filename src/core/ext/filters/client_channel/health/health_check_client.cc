@@ -51,7 +51,10 @@ HealthCheckClient::HealthCheckClient(
     grpc_pollset_set* interested_parties,
     RefCountedPtr<channelz::SubchannelNode> channelz_node,
     RefCountedPtr<ConnectivityStateWatcherInterface> watcher)
-    : InternallyRefCounted<HealthCheckClient>(&grpc_health_check_client_trace),
+    : InternallyRefCounted<HealthCheckClient>(
+          GRPC_TRACE_FLAG_ENABLED(grpc_health_check_client_trace)
+              ? "HealthCheckClient"
+              : nullptr),
       service_name_(service_name),
       connected_subchannel_(std::move(connected_subchannel)),
       interested_parties_(interested_parties),
@@ -91,7 +94,12 @@ void HealthCheckClient::SetHealthStatusLocked(grpc_connectivity_state state,
     gpr_log(GPR_INFO, "HealthCheckClient %p: setting state=%s reason=%s", this,
             ConnectivityStateName(state), reason);
   }
-  if (watcher_ != nullptr) watcher_->Notify(state);
+  if (watcher_ != nullptr) {
+    watcher_->Notify(state,
+                     state == GRPC_CHANNEL_TRANSIENT_FAILURE
+                         ? absl::Status(absl::StatusCode::kUnavailable, reason)
+                         : absl::Status());
+  }
 }
 
 void HealthCheckClient::Orphan() {

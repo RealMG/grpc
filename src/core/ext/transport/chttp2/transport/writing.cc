@@ -58,7 +58,7 @@ static void maybe_initiate_ping(grpc_chttp2_transport* t) {
         GRPC_TRACE_FLAG_ENABLED(grpc_bdp_estimator_trace) ||
         GRPC_TRACE_FLAG_ENABLED(grpc_keepalive_trace)) {
       gpr_log(GPR_INFO, "%s: Ping delayed [%s]: already pinging",
-              t->is_client ? "CLIENT" : "SERVER", t->peer_string);
+              t->is_client ? "CLIENT" : "SERVER", t->peer_string.c_str());
     }
     return;
   }
@@ -69,7 +69,7 @@ static void maybe_initiate_ping(grpc_chttp2_transport* t) {
         GRPC_TRACE_FLAG_ENABLED(grpc_bdp_estimator_trace) ||
         GRPC_TRACE_FLAG_ENABLED(grpc_keepalive_trace)) {
       gpr_log(GPR_INFO, "%s: Ping delayed [%s]: too many recent pings: %d/%d",
-              t->is_client ? "CLIENT" : "SERVER", t->peer_string,
+              t->is_client ? "CLIENT" : "SERVER", t->peer_string.c_str(),
               t->ping_state.pings_before_data_required,
               t->ping_policy.max_pings_without_data);
     }
@@ -81,8 +81,7 @@ static void maybe_initiate_ping(grpc_chttp2_transport* t) {
       (t->keepalive_permit_without_calls == 0 &&
        grpc_chttp2_stream_map_size(&t->stream_map) == 0)
           ? 7200 * GPR_MS_PER_SEC
-          : (t->ping_policy.min_sent_ping_interval_without_data +
-             GPR_MS_PER_SEC); /* A second is added to deal with network delays
+          : (GPR_MS_PER_SEC); /* A second is added to deal with network delays
                                  and timing imprecision */
   grpc_millis next_allowed_ping =
       t->ping_state.last_ping_sent_time + next_allowed_ping_interval;
@@ -95,7 +94,7 @@ static void maybe_initiate_ping(grpc_chttp2_transport* t) {
       gpr_log(GPR_INFO,
               "%s: Ping delayed [%s]: not enough time elapsed since last ping. "
               " Last ping %f: Next ping %f: Now %f",
-              t->is_client ? "CLIENT" : "SERVER", t->peer_string,
+              t->is_client ? "CLIENT" : "SERVER", t->peer_string.c_str(),
               static_cast<double>(t->ping_state.last_ping_sent_time),
               static_cast<double>(next_allowed_ping), static_cast<double>(now));
     }
@@ -125,7 +124,7 @@ static void maybe_initiate_ping(grpc_chttp2_transport* t) {
       GRPC_TRACE_FLAG_ENABLED(grpc_bdp_estimator_trace) ||
       GRPC_TRACE_FLAG_ENABLED(grpc_keepalive_trace)) {
     gpr_log(GPR_INFO, "%s: Ping sent [%s]: %d/%d",
-            t->is_client ? "CLIENT" : "SERVER", t->peer_string,
+            t->is_client ? "CLIENT" : "SERVER", t->peer_string.c_str(),
             t->ping_state.pings_before_data_required,
             t->ping_policy.max_pings_without_data);
   }
@@ -165,7 +164,8 @@ static void report_stall(grpc_chttp2_transport* t, grpc_chttp2_stream* s,
         "helpful data: [fc:pending=%" PRIdPTR ":pending-compressed=%" PRIdPTR
         ":flowed=%" PRId64 ":peer_initwin=%d:t_win=%" PRId64
         ":s_win=%d:s_delta=%" PRId64 "]",
-        t->peer_string, t, s->id, staller, s->flow_controlled_buffer.length,
+        t->peer_string.c_str(), t, s->id, staller,
+        s->flow_controlled_buffer.length,
         s->stream_compression_method ==
                 GRPC_STREAM_COMPRESSION_IDENTITY_COMPRESS
             ? 0
@@ -198,7 +198,7 @@ class StreamWriteContext;
 
 class WriteContext {
  public:
-  WriteContext(grpc_chttp2_transport* t) : t_(t) {
+  explicit WriteContext(grpc_chttp2_transport* t) : t_(t) {
     GRPC_STATS_INC_HTTP2_WRITES_BEGUN();
     GPR_TIMER_SCOPE("grpc_chttp2_begin_write", 0);
   }

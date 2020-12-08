@@ -57,7 +57,7 @@ BENCHMARK(BM_CreateDestroyCpp2);
 static void BM_CreateDestroyCore(benchmark::State& state) {
   TrackCounters track_counters;
   for (auto _ : state) {
-    // TODO: sreek Templatize this benchmark and pass completion type and
+    // TODO(sreek): Templatize this benchmark and pass completion type and
     // polling type as parameters
     grpc_completion_queue_destroy(
         grpc_completion_queue_create_for_next(nullptr));
@@ -103,7 +103,7 @@ BENCHMARK(BM_Pass1Cpp);
 
 static void BM_Pass1Core(benchmark::State& state) {
   TrackCounters track_counters;
-  // TODO: sreek Templatize this benchmark and pass polling_type as a param
+  // TODO(sreek): Templatize this benchmark and pass polling_type as a param
   grpc_completion_queue* cq = grpc_completion_queue_create_for_next(nullptr);
   gpr_timespec deadline = gpr_inf_future(GPR_CLOCK_MONOTONIC);
   for (auto _ : state) {
@@ -122,7 +122,7 @@ BENCHMARK(BM_Pass1Core);
 
 static void BM_Pluck1Core(benchmark::State& state) {
   TrackCounters track_counters;
-  // TODO: sreek Templatize this benchmark and pass polling_type as a param
+  // TODO(sreek): Templatize this benchmark and pass polling_type as a param
   grpc_completion_queue* cq = grpc_completion_queue_create_for_pluck(nullptr);
   gpr_timespec deadline = gpr_inf_future(GPR_CLOCK_MONOTONIC);
   for (auto _ : state) {
@@ -141,7 +141,7 @@ BENCHMARK(BM_Pluck1Core);
 
 static void BM_EmptyCore(benchmark::State& state) {
   TrackCounters track_counters;
-  // TODO: sreek Templatize this benchmark and pass polling_type as a param
+  // TODO(sreek): Templatize this benchmark and pass polling_type as a param
   grpc_completion_queue* cq = grpc_completion_queue_create_for_next(nullptr);
   gpr_timespec deadline = gpr_inf_past(GPR_CLOCK_MONOTONIC);
   for (auto _ : state) {
@@ -211,7 +211,12 @@ static void BM_Callback_CQ_Pass1Core(benchmark::State& state) {
   bool got_shutdown = false;
   ShutdownCallback shutdown_cb(&got_shutdown);
   // This test with stack-allocated completions only works for non-polling or
-  // EM-polling callback core CQs. For generality, test with non-polling.
+  // EM-polling callback core CQs because otherwise the callback could execute
+  // on  another thread after the stack objects here go out of scope. An
+  // alternative would be to synchronize between the benchmark loop and the
+  // callback, but then it would be measuring the overhead of synchronization
+  // rather than the overhead of the completion queue.
+  // For generality, test here with non-polling.
   grpc_completion_queue_attributes attr;
   attr.version = 2;
   attr.cq_completion_type = GRPC_CQ_CALLBACK;

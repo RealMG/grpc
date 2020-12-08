@@ -37,8 +37,6 @@
 #include <grpc/support/time.h>
 
 #include <address_sorting/address_sorting.h>
-#include "src/core/ext/filters/client_channel/lb_policy/grpclb/grpclb_balancer_addresses.h"
-#include "src/core/ext/filters/client_channel/parse_address.h"
 #include "src/core/ext/filters/client_channel/resolver/dns/c_ares/grpc_ares_ev_driver.h"
 #include "src/core/lib/gpr/string.h"
 #include "src/core/lib/gprpp/host_port.h"
@@ -46,7 +44,9 @@
 #include "src/core/lib/iomgr/executor.h"
 #include "src/core/lib/iomgr/iomgr_internal.h"
 #include "src/core/lib/iomgr/nameser.h"
+#include "src/core/lib/iomgr/parse_address.h"
 #include "src/core/lib/iomgr/sockaddr_utils.h"
+#include "src/core/lib/transport/authority_override.h"
 
 using grpc_core::ServerAddress;
 using grpc_core::ServerAddressList;
@@ -139,8 +139,8 @@ void grpc_cares_wrapper_address_sorting_sort(const grpc_ares_request* r,
   if (GRPC_TRACE_FLAG_ENABLED(grpc_trace_cares_address_sorting)) {
     log_address_sorting_list(r, *addresses, "input");
   }
-  address_sorting_sortable* sortables = (address_sorting_sortable*)gpr_zalloc(
-      sizeof(address_sorting_sortable) * addresses->size());
+  address_sorting_sortable* sortables = static_cast<address_sorting_sortable*>(
+      gpr_zalloc(sizeof(address_sorting_sortable) * addresses->size()));
   for (size_t i = 0; i < addresses->size(); ++i) {
     sortables[i].user_data = &(*addresses)[i];
     memcpy(&sortables[i].dest_addr.addr, &(*addresses)[i].address().addr,
@@ -237,7 +237,7 @@ static void on_hostbyname_done_locked(void* arg, int status, int /*timeouts*/,
       absl::InlinedVector<grpc_arg, 1> args_to_add;
       if (hr->is_balancer) {
         args_to_add.emplace_back(
-            grpc_core::CreateGrpclbBalancerNameArg(hr->host));
+            grpc_core::CreateAuthorityOverrideChannelArg(hr->host));
       }
       grpc_channel_args* args = grpc_channel_args_copy_and_add(
           nullptr, args_to_add.data(), args_to_add.size());
@@ -425,7 +425,7 @@ void grpc_dns_lookup_ares_continue_after_check_localhost_and_ip_literals_locked(
   if (error != GRPC_ERROR_NONE) goto error_cleanup;
   channel = grpc_ares_ev_driver_get_channel_locked(r->ev_driver);
   // If dns_server is specified, use it.
-  if (dns_server != nullptr) {
+  if (dns_server != nullptr && dns_server[0] != '\0') {
     GRPC_CARES_TRACE_LOG("request:%p Using DNS server %s", r, dns_server);
     grpc_resolved_address addr;
     if (grpc_parse_ipv4_hostport(dns_server, &addr, false /* log_errors */)) {
@@ -619,7 +619,7 @@ static bool grpc_ares_maybe_resolve_localhost_manually_locked(
 }
 #else  /* GRPC_ARES_RESOLVE_LOCALHOST_MANUALLY */
 static bool grpc_ares_maybe_resolve_localhost_manually_locked(
-    const grpc_ares_request* r, const char* /*name*/,
+    const grpc_ares_request* /*r*/, const char* /*name*/,
     const char* /*default_port*/,
     std::unique_ptr<grpc_core::ServerAddressList>* /*addrs*/) {
   return false;

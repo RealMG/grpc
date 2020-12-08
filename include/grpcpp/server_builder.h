@@ -38,17 +38,14 @@
 
 struct grpc_resource_quota;
 
-namespace grpc_impl {
+namespace grpc {
 
 class CompletionQueue;
 class Server;
 class ServerCompletionQueue;
-class ServerCredentials;
-}  // namespace grpc_impl
-
-namespace grpc {
-
 class AsyncGenericService;
+class ResourceQuota;
+class ServerCredentials;
 class Service;
 namespace testing {
 class ServerBuilderPluginTest;
@@ -85,6 +82,9 @@ class ExternalConnectionAcceptor {
 };
 
 }  // namespace experimental
+}  // namespace grpc
+
+namespace grpc {
 
 /// A builder class for the creation and startup of \a grpc::Server instances.
 class ServerBuilder {
@@ -124,13 +124,13 @@ class ServerBuilder {
   /// connections.  Valid values include dns:///localhost:1234, /
   /// 192.168.1.1:31416, dns:///[::1]:27182, etc.).
   /// \param creds The credentials associated with the server.
-  /// \param selected_port[out] If not `nullptr`, gets populated with the port
+  /// \param[out] selected_port If not `nullptr`, gets populated with the port
   /// number bound to the \a grpc::Server for the corresponding endpoint after
   /// it is successfully bound by BuildAndStart(), 0 otherwise. AddListeningPort
   /// does not modify this pointer.
   ServerBuilder& AddListeningPort(
       const std::string& addr_uri,
-      std::shared_ptr<grpc_impl::ServerCredentials> creds,
+      std::shared_ptr<grpc::ServerCredentials> creds,
       int* selected_port = nullptr);
 
   /// Add a completion queue for handling asynchronous services.
@@ -163,7 +163,7 @@ class ServerBuilder {
   /// not polling the completion queue frequently) will have a significantly
   /// negative performance impact and hence should not be used in production
   /// use cases.
-  std::unique_ptr<grpc_impl::ServerCompletionQueue> AddCompletionQueue(
+  std::unique_ptr<grpc::ServerCompletionQueue> AddCompletionQueue(
       bool is_frequently_polled = true);
 
   //////////////////////////////////////////////////////////////////////////////
@@ -312,7 +312,7 @@ class ServerBuilder {
   /// Experimental, to be deprecated
   struct Port {
     std::string addr;
-    std::shared_ptr<grpc_impl::ServerCredentials> creds;
+    std::shared_ptr<ServerCredentials> creds;
     int* selected_port;
   };
 
@@ -378,9 +378,9 @@ class ServerBuilder {
   SyncServerSettings sync_server_settings_;
 
   /// List of completion queues added via \a AddCompletionQueue method.
-  std::vector<grpc_impl::ServerCompletionQueue*> cqs_;
+  std::vector<grpc::ServerCompletionQueue*> cqs_;
 
-  std::shared_ptr<grpc_impl::ServerCredentials> creds_;
+  std::shared_ptr<grpc::ServerCredentials> creds_;
   std::vector<std::unique_ptr<grpc::ServerBuilderPlugin>> plugins_;
   grpc_resource_quota* resource_quota_;
   grpc::AsyncGenericService* generic_service_{nullptr};

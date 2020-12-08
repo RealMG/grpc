@@ -21,7 +21,7 @@
 
 namespace grpc_core {
 
-extern const char* kCallAttributeDeadline;
+extern const char* kXdsClusterAttribute;
 
 }  // namespace grpc_core
 

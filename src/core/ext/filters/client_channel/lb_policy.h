@@ -24,6 +24,7 @@
 #include <functional>
 #include <iterator>
 
+#include "absl/status/status.h"
 #include "absl/strings/string_view.h"
 
 #include "src/core/ext/filters/client_channel/server_address.h"
@@ -278,11 +279,12 @@ class LoadBalancingPolicy : public InternallyRefCounted<LoadBalancingPolicy> {
 
     /// Creates a new subchannel with the specified channel args.
     virtual RefCountedPtr<SubchannelInterface> CreateSubchannel(
-        const grpc_channel_args& args) = 0;
+        ServerAddress address, const grpc_channel_args& args) = 0;
 
     /// Sets the connectivity state and returns a new picker to be used
     /// by the client channel.
     virtual void UpdateState(grpc_connectivity_state state,
+                             const absl::Status& status,
                              std::unique_ptr<SubchannelPicker>) = 0;
 
     /// Requests that the resolver re-resolve.
@@ -299,7 +301,7 @@ class LoadBalancingPolicy : public InternallyRefCounted<LoadBalancingPolicy> {
   /// return the parameters they need.
   class Config : public RefCounted<Config> {
    public:
-    virtual ~Config() = default;
+    ~Config() override = default;
 
     // Returns the load balancing policy name
     virtual const char* name() const = 0;
@@ -339,7 +341,7 @@ class LoadBalancingPolicy : public InternallyRefCounted<LoadBalancingPolicy> {
   };
 
   explicit LoadBalancingPolicy(Args args, intptr_t initial_refcount = 1);
-  virtual ~LoadBalancingPolicy();
+  ~LoadBalancingPolicy() override;
 
   // Not copyable nor movable.
   LoadBalancingPolicy(const LoadBalancingPolicy&) = delete;
@@ -374,7 +376,7 @@ class LoadBalancingPolicy : public InternallyRefCounted<LoadBalancingPolicy> {
     explicit QueuePicker(RefCountedPtr<LoadBalancingPolicy> parent)
         : parent_(std::move(parent)) {}
 
-    ~QueuePicker() { parent_.reset(DEBUG_LOCATION, "QueuePicker"); }
+    ~QueuePicker() override { parent_.reset(DEBUG_LOCATION, "QueuePicker"); }
 
     PickResult Pick(PickArgs args) override;
 

@@ -30,11 +30,11 @@
 #include <grpc/support/log.h>
 
 #include "src/core/ext/filters/client_channel/lb_policy/grpclb/grpclb.h"
-#include "src/core/ext/filters/client_channel/parse_address.h"
 #include "src/core/ext/filters/load_reporting/registered_opencensus_objects.h"
 #include "src/core/ext/filters/load_reporting/server_load_reporting_filter.h"
 #include "src/core/lib/channel/channel_args.h"
 #include "src/core/lib/channel/context.h"
+#include "src/core/lib/iomgr/parse_address.h"
 #include "src/core/lib/iomgr/resolve_address.h"
 #include "src/core/lib/iomgr/sockaddr.h"
 #include "src/core/lib/iomgr/socket_utils.h"
@@ -134,18 +134,18 @@ std::string ServerLoadReportingCallData::GetCensusSafeClientIpString() {
             "metadata.");
     return "";
   }
-  // Parse the client URI string into grpc_uri.
-  grpc_uri* client_uri = grpc_uri_parse(client_uri_str, true);
-  if (client_uri == nullptr) {
+  absl::StatusOr<grpc_core::URI> client_uri =
+      grpc_core::URI::Parse(client_uri_str);
+  if (!client_uri.ok()) {
     gpr_log(GPR_ERROR,
             "Unable to parse the client URI string (peer string) to a client "
-            "URI.");
+            "URI. Error: %s",
+            client_uri.status().ToString().c_str());
     return "";
   }
   // Parse the client URI into grpc_resolved_address.
   grpc_resolved_address resolved_address;
-  bool success = grpc_parse_uri(client_uri, &resolved_address);
-  grpc_uri_destroy(client_uri);
+  bool success = grpc_parse_uri(*client_uri, &resolved_address);
   if (!success) {
     gpr_log(GPR_ERROR,
             "Unable to parse client URI into a grpc_resolved_address.");
@@ -180,7 +180,7 @@ void ServerLoadReportingCallData::StoreClientIpAndLrToken(const char* lr_token,
       gpr_zalloc(client_ip_and_lr_token_len_ * sizeof(char)));
   char* cur_pos = client_ip_and_lr_token_;
   // Store the IP length prefix.
-  if (client_ip.size() == 0) {
+  if (client_ip.empty()) {
     strncpy(cur_pos, kEmptyAddressLengthString, kLengthPrefixSize);
   } else if (client_ip.size() == 8) {
     strncpy(cur_pos, kEncodedIpv4AddressLengthString, kLengthPrefixSize);

@@ -87,11 +87,6 @@ def grpc_deps():
     )
 
     native.bind(
-        name = "gflags",
-        actual = "@com_github_gflags_gflags//:gflags",
-    )
-
-    native.bind(
         name = "grpc_cpp_plugin",
         actual = "@com_github_grpc_grpc//src/compiler:grpc_cpp_plugin",
     )
@@ -146,11 +141,11 @@ def grpc_deps():
             name = "boringssl",
             # Use github mirror instead of https://boringssl.googlesource.com/boringssl
             # to obtain a boringssl archive with consistent sha256
-            sha256 = "1ea42456c020daf0a9b0f9e8d8bc3a403c9314f4f54230c617257af996cd5fa6",
-            strip_prefix = "boringssl-597b810379e126ae05d32c1d94b1a9464385acd0",
+            sha256 = "e8c02bb7043644dc138e422a9a3412108732b6ff30590db4a05664476b209c03",
+            strip_prefix = "boringssl-29c6e0e27268f5a43e039cd2ed4e849d6b736fc1",
             urls = [
-                "https://storage.googleapis.com/grpc-bazel-mirror/github.com/google/boringssl/archive/597b810379e126ae05d32c1d94b1a9464385acd0.tar.gz",
-                "https://github.com/google/boringssl/archive/597b810379e126ae05d32c1d94b1a9464385acd0.tar.gz",
+                "https://storage.googleapis.com/grpc-bazel-mirror/github.com/google/boringssl/archive/29c6e0e27268f5a43e039cd2ed4e849d6b736fc1.tar.gz",
+                "https://github.com/google/boringssl/archive/29c6e0e27268f5a43e039cd2ed4e849d6b736fc1.tar.gz",
             ],
         )
 
@@ -169,11 +164,11 @@ def grpc_deps():
     if "com_google_protobuf" not in native.existing_rules():
         http_archive(
             name = "com_google_protobuf",
-            sha256 = "efaf69303e01caccc2447064fc1832dfd23c0c130df0dc5fc98a13185bb7d1a7",
-            strip_prefix = "protobuf-678da4f76eb9168c9965afc2149944a66cd48546",
+            sha256 = "e589e39ef46fb2b3b476b3ca355bd324e5984cbdfac19f0e1625f0042e99c276",
+            strip_prefix = "protobuf-fde7cf7358ec7cd69e8db9be4f1fa6a5c431386a",
             urls = [
-                "https://storage.googleapis.com/grpc-bazel-mirror/github.com/google/protobuf/archive/678da4f76eb9168c9965afc2149944a66cd48546.tar.gz",
-                "https://github.com/google/protobuf/archive/678da4f76eb9168c9965afc2149944a66cd48546.tar.gz",
+                "https://storage.googleapis.com/grpc-bazel-mirror/github.com/google/protobuf/archive/fde7cf7358ec7cd69e8db9be4f1fa6a5c431386a.tar.gz",
+                "https://github.com/google/protobuf/archive/fde7cf7358ec7cd69e8db9be4f1fa6a5c431386a.tar.gz",
             ],
         )
 
@@ -198,17 +193,6 @@ def grpc_deps():
                 #2019-08-15
                 "https://storage.googleapis.com/grpc-bazel-mirror/github.com/bazelbuild/rules_cc/archive/624b5d59dfb45672d4239422fa1e3de1822ee110.tar.gz",
                 "https://github.com/bazelbuild/rules_cc/archive/624b5d59dfb45672d4239422fa1e3de1822ee110.tar.gz",
-            ],
-        )
-
-    if "com_github_gflags_gflags" not in native.existing_rules():
-        http_archive(
-            name = "com_github_gflags_gflags",
-            sha256 = "63ae70ea3e05780f7547d03503a53de3a7d2d83ad1caaa443a31cb20aea28654",
-            strip_prefix = "gflags-28f50e0fed19872e0fd50dd23ce2ee8cd759338e",
-            urls = [
-                "https://storage.googleapis.com/grpc-bazel-mirror/github.com/gflags/gflags/archive/28f50e0fed19872e0fd50dd23ce2ee8cd759338e.tar.gz",
-                "https://github.com/gflags/gflags/archive/28f50e0fed19872e0fd50dd23ce2ee8cd759338e.tar.gz",
             ],
         )
 
@@ -249,11 +233,11 @@ def grpc_deps():
     if "com_google_absl" not in native.existing_rules():
         http_archive(
             name = "com_google_absl",
-            sha256 = "f368a8476f4e2e0eccf8a7318b98dafbe30b2600f4e3cf52636e5eb145aba06a",
-            strip_prefix = "abseil-cpp-df3ea785d8c30a9503321a3d35ee7d35808f190d",
+            sha256 = "3d74cdc98b42fd4257d91f652575206de195e2c824fcd8d6e6d227f85cb143ef",
+            strip_prefix = "abseil-cpp-0f3bb466b868b523cf1dc9b2aaaed65c77b28862",
             urls = [
-                "https://storage.googleapis.com/grpc-bazel-mirror/github.com/abseil/abseil-cpp/archive/df3ea785d8c30a9503321a3d35ee7d35808f190d.tar.gz",
-                "https://github.com/abseil/abseil-cpp/archive/df3ea785d8c30a9503321a3d35ee7d35808f190d.tar.gz",
+                "https://storage.googleapis.com/grpc-bazel-mirror/github.com/abseil/abseil-cpp/archive/0f3bb466b868b523cf1dc9b2aaaed65c77b28862.tar.gz",
+                "https://github.com/abseil/abseil-cpp/archive/0f3bb466b868b523cf1dc9b2aaaed65c77b28862.tar.gz",
             ],
         )
 
@@ -279,6 +263,17 @@ def grpc_deps():
             sha256 = "97e70364e9249702246c0e9444bccdc4b847bed1eb03c5a3ece4f83dfe6abc44",
         )
 
+    if "bazel_compdb" not in native.existing_rules():
+        http_archive(
+            name = "bazel_compdb",
+            sha256 = "bcecfd622c4ef272fd4ba42726a52e140b961c4eac23025f18b346c968a8cfb4",
+            strip_prefix = "bazel-compilation-database-0.4.5",
+            urls = [
+                "https://storage.googleapis.com/grpc-bazel-mirror/github.com/grailbio/bazel-compilation-database/archive/0.4.5.tar.gz",
+                "https://github.com/grailbio/bazel-compilation-database/archive/0.4.5.tar.gz",
+            ],
+        )
+
     if "io_opencensus_cpp" not in native.existing_rules():
         http_archive(
             name = "io_opencensus_cpp",
@@ -293,22 +288,22 @@ def grpc_deps():
     if "upb" not in native.existing_rules():
         http_archive(
             name = "upb",
-            sha256 = "79f7de61203c4ee5e4fcb2f17c5f3338119d6eb94aca8bce05332d2c1cfee108",
-            strip_prefix = "upb-92e63da73328d01b417cf26c2de7b0a27a0f83af",
+            sha256 = "7992217989f3156f8109931c1fc6db3434b7414957cb82371552377beaeb9d6c",
+            strip_prefix = "upb-382d5afc60e05470c23e8de19b19fc5ad231e732",
             urls = [
-                "https://storage.googleapis.com/grpc-bazel-mirror/github.com/protocolbuffers/upb/archive/92e63da73328d01b417cf26c2de7b0a27a0f83af.tar.gz",
-                "https://github.com/protocolbuffers/upb/archive/92e63da73328d01b417cf26c2de7b0a27a0f83af.tar.gz",
+                "https://storage.googleapis.com/grpc-bazel-mirror/github.com/protocolbuffers/upb/archive/382d5afc60e05470c23e8de19b19fc5ad231e732.tar.gz",
+                "https://github.com/protocolbuffers/upb/archive/382d5afc60e05470c23e8de19b19fc5ad231e732.tar.gz",
             ],
         )
 
     if "envoy_api" not in native.existing_rules():
         http_archive(
             name = "envoy_api",
-            sha256 = "9150f920abd3e710e0e58519cd769822f13d7a56988f2c34c2008815ec8d9c88",
-            strip_prefix = "data-plane-api-8dcc476be69437b505af181a6e8b167fdb101d7e",
+            sha256 = "466585f253471259ce17641348149f458270316e81ec6702fdd8bf0b1b681256",
+            strip_prefix = "data-plane-api-9997e1137cdb59e622af13e57ca915a2f3c9f84f",
             urls = [
-                "https://storage.googleapis.com/grpc-bazel-mirror/github.com/envoyproxy/data-plane-api/archive/8dcc476be69437b505af181a6e8b167fdb101d7e.tar.gz",
-                "https://github.com/envoyproxy/data-plane-api/archive/8dcc476be69437b505af181a6e8b167fdb101d7e.tar.gz",
+                "https://storage.googleapis.com/grpc-bazel-mirror/github.com/envoyproxy/data-plane-api/archive/9997e1137cdb59e622af13e57ca915a2f3c9f84f.tar.gz",
+                "https://github.com/envoyproxy/data-plane-api/archive/9997e1137cdb59e622af13e57ca915a2f3c9f84f.tar.gz",
             ],
         )
 

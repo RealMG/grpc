@@ -106,7 +106,8 @@ static int alpn_select_cb(SSL* /*ssl*/, const uint8_t** out, uint8_t* out_len,
   const uint8_t* alpn_preferred = static_cast<const uint8_t*>(arg);
 
   *out = alpn_preferred;
-  *out_len = static_cast<uint8_t>(strlen((char*)alpn_preferred));
+  *out_len = static_cast<uint8_t>(
+      strlen(reinterpret_cast<const char*>(alpn_preferred)));
 
   // Validate that the ALPN list includes "h2" and "grpc-exp", that "grpc-exp"
   // precedes "h2".
@@ -198,10 +199,14 @@ static void server_thread(void* arg) {
     gpr_log(GPR_INFO, "Handshake successful.");
   }
 
+  // Send out the settings frame.
+  const char settings_frame[] = "\x00\x00\x00\x04\x00\x00\x00\x00\x00";
+  SSL_write(ssl, settings_frame, sizeof(settings_frame) - 1);
+
   // Wait until the client drops its connection.
   char buf;
-  while (SSL_read(ssl, &buf, sizeof(buf)) > 0)
-    ;
+  while (SSL_read(ssl, &buf, sizeof(buf)) > 0) {
+  }
 
   SSL_free(ssl);
   close(client);

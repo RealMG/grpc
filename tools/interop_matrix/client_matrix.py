@@ -59,7 +59,7 @@ LANG_RUNTIME_MATRIX = {
     'python': ['python', 'pythonasyncio'],
     'node': ['node'],
     'ruby': ['ruby'],
-    'php': ['php', 'php7'],
+    'php': ['php7'],
     'csharp': ['csharp', 'csharpcoreclr'],
 }
 
@@ -96,16 +96,20 @@ LANG_RELEASE_MATRIX = {
             ('v1.17.1', ReleaseInfo(testcases_file='cxx__v1.0.1')),
             ('v1.18.0', ReleaseInfo(testcases_file='cxx__v1.0.1')),
             ('v1.19.0', ReleaseInfo(testcases_file='cxx__v1.0.1')),
-            ('v1.20.0', ReleaseInfo()),
-            ('v1.21.4', ReleaseInfo()),
-            ('v1.22.0', ReleaseInfo()),
-            ('v1.22.1', ReleaseInfo()),
-            ('v1.23.0', ReleaseInfo()),
-            ('v1.24.0', ReleaseInfo()),
-            ('v1.25.0', ReleaseInfo()),
-            ('v1.26.0', ReleaseInfo()),
-            ('v1.27.3', ReleaseInfo()),
-            ('v1.30.0', ReleaseInfo()),
+            ('v1.20.0', ReleaseInfo(testcases_file='cxx__v1.31.1')),
+            ('v1.21.4', ReleaseInfo(testcases_file='cxx__v1.31.1')),
+            ('v1.22.0', ReleaseInfo(testcases_file='cxx__v1.31.1')),
+            ('v1.22.1', ReleaseInfo(testcases_file='cxx__v1.31.1')),
+            ('v1.23.0', ReleaseInfo(testcases_file='cxx__v1.31.1')),
+            ('v1.24.0', ReleaseInfo(testcases_file='cxx__v1.31.1')),
+            ('v1.25.0', ReleaseInfo(testcases_file='cxx__v1.31.1')),
+            ('v1.26.0', ReleaseInfo(testcases_file='cxx__v1.31.1')),
+            ('v1.27.3', ReleaseInfo(testcases_file='cxx__v1.31.1')),
+            ('v1.30.0', ReleaseInfo(testcases_file='cxx__v1.31.1')),
+            ('v1.31.1', ReleaseInfo(testcases_file='cxx__v1.31.1')),
+            ('v1.32.0', ReleaseInfo()),
+            ('v1.33.2', ReleaseInfo()),
+            ('v1.34.0', ReleaseInfo()),
         ]),
     'go':
         OrderedDict([
@@ -157,6 +161,10 @@ LANG_RELEASE_MATRIX = {
             ('v1.27.1', ReleaseInfo(runtimes=['go1.11'])),
             ('v1.28.0', ReleaseInfo(runtimes=['go1.11'])),
             ('v1.29.0', ReleaseInfo(runtimes=['go1.11'])),
+            ('v1.30.0', ReleaseInfo(runtimes=['go1.11'])),
+            ('v1.31.1', ReleaseInfo(runtimes=['go1.11'])),
+            ('v1.32.0', ReleaseInfo(runtimes=['go1.11'])),
+            ('v1.33.1', ReleaseInfo(runtimes=['go1.11'])),
         ]),
     'java':
         OrderedDict([
@@ -221,6 +229,10 @@ LANG_RELEASE_MATRIX = {
             ('v1.28.1', ReleaseInfo()),
             ('v1.29.0', ReleaseInfo()),
             ('v1.30.2', ReleaseInfo()),
+            ('v1.31.1', ReleaseInfo()),
+            ('v1.32.2', ReleaseInfo()),
+            ('v1.33.1', ReleaseInfo()),
+            ('v1.34.0', ReleaseInfo()),
         ]),
     'python':
         OrderedDict([
@@ -277,6 +289,10 @@ LANG_RELEASE_MATRIX = {
             ('v1.26.0', ReleaseInfo(runtimes=['python'])),
             ('v1.27.3', ReleaseInfo(runtimes=['python'])),
             ('v1.30.0', ReleaseInfo(runtimes=['python'])),
+            ('v1.31.1', ReleaseInfo(runtimes=['python'])),
+            ('v1.32.0', ReleaseInfo(runtimes=['python'])),
+            ('v1.33.2', ReleaseInfo(runtimes=['python'])),
+            ('v1.34.0', ReleaseInfo(runtimes=['python'])),
         ]),
     'node':
         OrderedDict([
@@ -336,6 +352,10 @@ LANG_RELEASE_MATRIX = {
             ('v1.26.0', ReleaseInfo()),
             ('v1.27.3', ReleaseInfo()),
             ('v1.30.0', ReleaseInfo()),
+            ('v1.31.1', ReleaseInfo()),
+            ('v1.32.0', ReleaseInfo()),
+            ('v1.33.2', ReleaseInfo()),
+            ('v1.34.0', ReleaseInfo()),
         ]),
     'php':
         OrderedDict([
@@ -368,6 +388,10 @@ LANG_RELEASE_MATRIX = {
             ('v1.26.0', ReleaseInfo()),
             ('v1.27.3', ReleaseInfo()),
             ('v1.30.0', ReleaseInfo()),
+            ('v1.31.1', ReleaseInfo()),
+            ('v1.32.0', ReleaseInfo()),
+            ('v1.33.2', ReleaseInfo()),
+            ('v1.34.0', ReleaseInfo()),
         ]),
     'csharp':
         OrderedDict([
@@ -405,5 +429,9 @@ LANG_RELEASE_MATRIX = {
             ('v1.26.0', ReleaseInfo()),
             ('v1.27.3', ReleaseInfo()),
             ('v1.30.0', ReleaseInfo()),
+            ('v1.31.1', ReleaseInfo()),
+            ('v1.32.0', ReleaseInfo()),
+            ('v1.33.2', ReleaseInfo()),
+            ('v1.34.0', ReleaseInfo()),
         ]),
 }
